@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>智慧藥盒 Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f2f2f2; padding:20px; }
+    .row { display:flex; gap:16px; flex-wrap:wrap; }
+    .card {
+      background:#fff;
+      padding:16px;
+      border-radius:12px;
+      width:300px;
+      box-shadow:0 2px 10px rgba(0,0,0,.08);
+    }
+    .big { font-size:22px; font-weight:700; margin:6px 0; }
+    .muted { color:#666; font-size:14px; }
+
+    .tabs {
+      display:flex;
+      gap:10px;
+      margin: 14px 0 18px;
+      flex-wrap:wrap;
+    }
+    .tab-btn{
+      padding:10px 12px;
+      border:none;
+      border-radius:999px;
+      cursor:pointer;
+      font-weight:800;
+      background:#eee;
+      color:#111;
+    }
+    .tab-btn.active{
+      background:#111;
+      color:#fff;
+    }
+
+    .page { display:none; }
+    .page.active { display:block; }
+
+    .slot { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+    .time-tag{
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:999px;
+      background:#eee;
+      font-size:13px;
+      font-weight:700;
+      color:#111;
+      letter-spacing:.3px;
+    }
+
+    .input, input[type="time"], input[type="text"]{
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      outline: none;
+      box-sizing: border-box;
+      margin-top: 6px;
+      margin-bottom: 10px;
+      background: #fff;
+    }
+    button{
+      padding: 10px 12px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .btn-primary{ background:#111; color:#fff; }
+    .btn-ghost{ background:#eee; color:#111; }
+    .msg { margin-top: 8px; font-size: 14px; color:#444; }
+
+    table { width:100%; border-collapse:collapse; }
+    th, td { padding:10px; border-bottom:1px solid #eee; text-align:left; }
+  </style>
+</head>
+
+<body>
+<h2>💊 智慧藥盒 Dashboard</h2>
+
+<div class="tabs">
+  <button id="tab-status" class="tab-btn active">📡 狀態總覽</button>
+  <button id="tab-config" class="tab-btn">⚙️ 服藥設定</button>
+  <button id="tab-history" class="tab-btn">📒 服藥紀錄</button>
+</div>
+
+<!-- ================= Status Page ================= -->
+<div id="page-status" class="page active">
+  <div class="row">
+    <div class="card">
+      <div class="muted">時段</div>
+      <div class="slot">
+        <div class="big">早（Morning）</div>
+        <div id="time-morning" class="time-tag">--:--</div>
+      </div>
+
+      <div class="muted">需要服用藥物</div>
+      <div id="meds-morning" class="big">--</div>
+
+      <div class="muted">狀態</div>
+      <div id="state-morning" class="big">--</div>
+
+      <div class="muted">最後更新</div>
+      <div id="ts-morning" class="muted">--</div>
+    </div>
+
+    <div class="card">
+      <div class="muted">時段</div>
+      <div class="slot">
+        <div class="big">中（Noon）</div>
+        <div id="time-noon" class="time-tag">--:--</div>
+      </div>
+
+      <div class="muted">需要服用藥物</div>
+      <div id="meds-noon" class="big">--</div>
+
+      <div class="muted">狀態</div>
+      <div id="state-noon" class="big">--</div>
+
+      <div class="muted">最後更新</div>
+      <div id="ts-noon" class="muted">--</div>
+    </div>
+
+    <div class="card">
+      <div class="muted">時段</div>
+      <div class="slot">
+        <div class="big">晚（Night）</div>
+        <div id="time-night" class="time-tag">--:--</div>
+      </div>
+
+      <div class="muted">需要服用藥物</div>
+      <div id="meds-night" class="big">--</div>
+
+      <div class="muted">狀態</div>
+      <div id="state-night" class="big">--</div>
+
+      <div class="muted">最後更新</div>
+      <div id="ts-night" class="muted">--</div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= Config Page ================= -->
+<div id="page-config" class="page">
+  <div class="row">
+    <div class="card" style="width: 640px; max-width: 100%;">
+      <div class="big">⚙️ 服藥設定（下發到 Pico）</div>
+      <div class="muted">會 POST 到 /api/config，後端再 publish MQTT（retained）。</div>
+
+      <div style="height:10px;"></div>
+
+      <div class="muted">早（morning）時間</div>
+      <input id="t-morning" type="time" value="08:00">
+      <div class="muted">早 藥品（用逗號分隔）</div>
+      <input id="m-morning" type="text" placeholder="普拿疼1顆, 維他命C500mg">
+
+      <div class="muted">中（noon）時間</div>
+      <input id="t-noon" type="time" value="12:00">
+      <div class="muted">中 藥品（用逗號分隔）</div>
+      <input id="m-noon" type="text" placeholder="...">
+
+      <div class="muted">晚（night）時間</div>
+      <input id="t-night" type="time" value="20:00">
+      <div class="muted">晚 藥品（用逗號分隔）</div>
+      <input id="m-night" type="text" placeholder="...">
+
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button id="btn-load" class="btn-ghost">讀取目前設定</button>
+        <button id="btn-save" class="btn-primary">送出設定（Publish MQTT）</button>
+      </div>
+
+      <div id="save-msg" class="msg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= History Page ================= -->
+<div id="page-history" class="page">
+  <div class="row">
+    <div class="card" style="width: 980px; max-width: 100%;">
+      <div class="big">📒 過去 7 天服藥紀錄（只顯示最終結果）</div>
+      <div class="muted">資料來源：GET /api/history?days=7（DONE / MISSED）</div>
+
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:12px;">
+        <button id="btn-history" class="btn-primary">重新載入</button>
+        <div id="history-msg" class="msg"></div>
+      </div>
+
+      <div style="overflow:auto; margin-top:10px;">
+        <table>
+          <thead>
+            <tr>
+              <th>時間</th>
+              <th>時段</th>
+              <th>結果</th>
+              <th>服用藥品</th>
+            </tr>
+          </thead>
+          <tbody id="history-body">
+            <tr><td colspan="4" class="muted">--</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_BASE = "https://hospitals-span-exercise-bikini.trycloudflare.com";
+
+const API_STATE   = `${API_BASE}/api/state`;
+const API_CONFIG  = `${API_BASE}/api/config`;
+const API_HISTORY = `${API_BASE}/api/history?days=7`;
+
+const STATUS_TEXT = {
+  "IDLE": "待機中",
+  "ALARMING": "⏰ 提醒中",
+  "DONE": "✅ 已服藥",
+  "ACKED": "✅ 已服藥",
+  "MISSED": "❌ 漏服"
+};
+
+function fmtTs(sec) {
+  if (sec === null || sec === undefined) return "--";
+  const n = Number(sec);
+  if (!Number.isFinite(n) || n <= 0) return "--";
+  return new Date(n * 1000).toLocaleString();
+}
+
+function renderMeds(meds) {
+  if (!meds) return "--";
+  if (Array.isArray(meds)) return meds.length ? meds.join("、") : "--";
+  const s = String(meds).trim();
+  return s ? s : "--";
+}
+
+function renderTime(t) {
+  const s = String(t || "").trim();
+  return s ? s : "--:--";
+}
+
+function parseMeds(text) {
+  return text.split(",").map(s => s.trim()).filter(Boolean);
+}
+
+/* ========== State polling ========== */
+let stateTimer = null;
+
+async function refreshState() {
+  try {
+    const r = await fetch(API_STATE, { cache: "no-store" });
+    const data = await r.json();
+
+    ["morning", "noon", "night"].forEach(box => {
+      const stateEl = document.getElementById(`state-${box}`);
+      const tsEl = document.getElementById(`ts-${box}`);
+
+      if (data[box]) {
+        stateEl.textContent = STATUS_TEXT[data[box].state] ?? data[box].state;
+        tsEl.textContent = fmtTs(data[box].recv_ts);
+      } else {
+        stateEl.textContent = "--";
+        tsEl.textContent = "--";
+      }
+    });
+  } catch (e) {
+    ["morning","noon","night"].forEach(box=>{
+      document.getElementById(`state-${box}`).textContent = "後端未連線";
+      document.getElementById(`ts-${box}`).textContent = "--";
+    });
+  }
+}
+
+function startStatePolling() {
+  if (stateTimer) return;
+  refreshState();
+  stateTimer = setInterval(refreshState, 1000);
+}
+
+function stopStatePolling() {
+  if (!stateTimer) return;
+  clearInterval(stateTimer);
+  stateTimer = null;
+}
+
+/* ========== Config ========== */
+function fillFromConfig(cfg) {
+  const boxes = cfg?.boxes || {};
+  ["morning","noon","night"].forEach(box=>{
+    const medsEl = document.getElementById(`meds-${box}`);
+    const timeEl = document.getElementById(`time-${box}`);
+
+    if (boxes[box]) {
+      const t = boxes[box].time || "00:00";
+      const meds = boxes[box].meds || [];
+
+      document.getElementById(`t-${box}`).value = t;
+      document.getElementById(`m-${box}`).value = Array.isArray(meds) ? meds.join(", ") : String(meds);
+
+      if (medsEl) medsEl.textContent = renderMeds(meds);
+      if (timeEl) timeEl.textContent = renderTime(t);
+    } else {
+      if (medsEl) medsEl.textContent = "--";
+      if (timeEl) timeEl.textContent = "--:--";
+    }
+  });
+}
+
+async function loadConfig() {
+  const msg = document.getElementById("save-msg");
+  if (msg) msg.textContent = "讀取設定中...";
+
+  const r = await fetch(API_CONFIG, { cache: "no-store" });
+  const cfg = await r.json();
+  fillFromConfig(cfg);
+
+  if (msg) msg.textContent = `✅ 已讀取設定（最後設定：${fmtTs(cfg.updated_ts)}）`;
+}
+
+async function saveConfig() {
+  const msg = document.getElementById("save-msg");
+  if (msg) msg.textContent = "送出中...";
+
+  const payload = {
+    boxes: {
+      morning: { time: document.getElementById("t-morning").value, meds: parseMeds(document.getElementById("m-morning").value) },
+      noon:    { time: document.getElementById("t-noon").value,    meds: parseMeds(document.getElementById("m-noon").value) },
+      night:   { time: document.getElementById("t-night").value,   meds: parseMeds(document.getElementById("m-night").value) },
+    }
+  };
+
+  const r = await fetch(API_CONFIG, {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify(payload),
+    cache: "no-store"
+  });
+
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.detail || "POST /api/config failed");
+
+  if (msg) msg.textContent = `✅ 已送出設定並 publish MQTT（最後設定：${fmtTs(data.updated_ts)}）`;
+
+  loadConfig().catch(()=>{});
+}
+
+/* ========== History ========== */
+function boxLabel(box){
+  if (box === "morning") return "早（Morning）";
+  if (box === "noon") return "中（Noon）";
+  if (box === "night") return "晚（Night）";
+  return box || "--";
+}
+
+function stateLabel(st){
+  return STATUS_TEXT[st] ?? (st || "--");
+}
+
+async function loadHistory(){
+  const msg = document.getElementById("history-msg");
+  const body = document.getElementById("history-body");
+  if (msg) msg.textContent = "載入中...";
+
+  const r = await fetch(API_HISTORY, { cache: "no-store" });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.detail || "GET /api/history failed");
+
+  const rows = (data.rows || []).filter(x => (x.state === "DONE" || x.state === "MISSED"));
+
+  if (!rows.length) {
+    body.innerHTML = `<tr><td colspan="4" class="muted">（近 7 天沒有最終結果紀錄）</td></tr>`;
+    if (msg) msg.textContent = "✅ 已載入（0 筆）";
+    return;
+  }
+
+  body.innerHTML = rows.map(x => {
+    const timeStr = x.device_ts ? x.device_ts : fmtTs(x.recv_ts);
+    const medsStr = renderMeds(x.meds || []);
+    return `
+      <tr>
+        <td>${timeStr}</td>
+        <td>${boxLabel(x.box)}</td>
+        <td>${stateLabel(x.state)}</td>
+        <td>${medsStr}</td>
+      </tr>
+    `;
+  }).join("");
+
+  if (msg) msg.textContent = `✅ 已載入（${rows.length} 筆）`;
+}
+
+/* ========== Tabs ========== */
+function setActiveTab(which) {
+  const tabStatus = document.getElementById("tab-status");
+  const tabConfig = document.getElementById("tab-config");
+  const tabHistory = document.getElementById("tab-history");
+
+  const pageStatus = document.getElementById("page-status");
+  const pageConfig = document.getElementById("page-config");
+  const pageHistory = document.getElementById("page-history");
+
+  [tabStatus, tabConfig, tabHistory].forEach(x => x.classList.remove("active"));
+  [pageStatus, pageConfig, pageHistory].forEach(x => x.classList.remove("active"));
+
+  if (which === "status") {
+    tabStatus.classList.add("active");
+    pageStatus.classList.add("active");
+    startStatePolling();
+  } else if (which === "config") {
+    tabConfig.classList.add("active");
+    pageConfig.classList.add("active");
+    stopStatePolling();
+    loadConfig().catch(()=>{});
+  } else {
+    tabHistory.classList.add("active");
+    pageHistory.classList.add("active");
+    stopStatePolling();
+    loadHistory().catch(err=>{
+      document.getElementById("history-msg").textContent = `❌ 載入失敗：${err.message}`;
+    });
+  }
+}
+
+document.getElementById("tab-status").addEventListener("click", () => setActiveTab("status"));
+document.getElementById("tab-config").addEventListener("click", () => setActiveTab("config"));
+document.getElementById("tab-history").addEventListener("click", () => setActiveTab("history"));
+
+document.getElementById("btn-load").addEventListener("click", () => {
+  loadConfig().catch(err => {
+    document.getElementById("save-msg").textContent = `❌ 讀取失敗：${err.message}`;
+  });
+});
+
+document.getElementById("btn-save").addEventListener("click", () => {
+  saveConfig().catch(err => {
+    document.getElementById("save-msg").textContent = `❌ 送出失敗：${err.message}`;
+  });
+});
+
+document.getElementById("btn-history").addEventListener("click", () => {
+  loadHistory().catch(err => {
+    document.getElementById("history-msg").textContent = `❌ 載入失敗：${err.message}`;
+  });
+});
+
+/* ========== init ========== */
+loadConfig().catch(()=>{});
+setActiveTab("status");
+</script>
+</body>
+</html>
