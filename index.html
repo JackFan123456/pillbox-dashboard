@@ -220,6 +220,27 @@ const API_STATE   = `${API_BASE}/api/state`;
 const API_CONFIG  = `${API_BASE}/api/config`;
 const API_HISTORY = `${API_BASE}/api/history?days=7`;
 
+/* ✅ 統一把 ngrok header + no-store 放這裡，所有 GET 直接用它 */
+const FETCH_GET_OPTS = {
+  cache: "no-store",
+  headers: {
+    "ngrok-skip-browser-warning": "true"
+  }
+};
+
+/* ✅ POST 也要帶 ngrok header（但還要 Content-Type） */
+function fetchPostJson(url, payloadObj) {
+  return fetch(url, {
+    method: "POST",
+    cache: "no-store",
+    headers: {
+      "Content-Type": "application/json",
+      "ngrok-skip-browser-warning": "true"
+    },
+    body: JSON.stringify(payloadObj)
+  });
+}
+
 const STATUS_TEXT = {
   "IDLE": "待機中",
   "ALARMING": "⏰ 提醒中",
@@ -256,7 +277,7 @@ let stateTimer = null;
 
 async function refreshState() {
   try {
-    const r = await fetch(API_STATE, { cache: "no-store" });
+    const r = await fetch(API_STATE, FETCH_GET_OPTS);
     const data = await r.json();
 
     ["morning", "noon", "night"].forEach(box => {
@@ -318,7 +339,7 @@ async function loadConfig() {
   const msg = document.getElementById("save-msg");
   if (msg) msg.textContent = "讀取設定中...";
 
-  const r = await fetch(API_CONFIG, { cache: "no-store" });
+  const r = await fetch(API_CONFIG, FETCH_GET_OPTS);
   const cfg = await r.json();
   fillFromConfig(cfg);
 
@@ -337,13 +358,7 @@ async function saveConfig() {
     }
   };
 
-  const r = await fetch(API_CONFIG, {
-    method: "POST",
-    headers: {"Content-Type":"application/json"},
-    body: JSON.stringify(payload),
-    cache: "no-store"
-  });
-
+  const r = await fetchPostJson(API_CONFIG, payload);
   const data = await r.json();
   if (!r.ok) throw new Error(data.detail || "POST /api/config failed");
 
@@ -369,7 +384,7 @@ async function loadHistory(){
   const body = document.getElementById("history-body");
   if (msg) msg.textContent = "載入中...";
 
-  const r = await fetch(API_HISTORY, { cache: "no-store" });
+  const r = await fetch(API_HISTORY, FETCH_GET_OPTS);
   const data = await r.json();
   if (!r.ok) throw new Error(data.detail || "GET /api/history failed");
 
