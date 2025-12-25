@@ -5,73 +5,139 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>智慧藥盒 Dashboard</title>
   <style>
-    body { font-family: Arial, sans-serif; background:#f2f2f2; padding:20px; }
-    .row { display:flex; gap:16px; flex-wrap:wrap; }
-    .card {
-      background:#fff;
-      padding:16px;
-      border-radius:12px;
-      width:300px;
-      box-shadow:0 2px 10px rgba(0,0,0,.08);
+    :root{
+      --bg:#f2f2f2;
+      --card:#fff;
+      --text:#111;
+      --muted:#666;
+      --line:#eee;
+      --shadow:0 2px 10px rgba(0,0,0,.08);
+      --radius:14px;
+      --focus: 3px solid rgba(17,17,17,.35);
     }
-    .big { font-size:22px; font-weight:700; margin:6px 0; }
-    .muted { color:#666; font-size:14px; }
 
-    .tabs { display:flex; gap:10px; margin:14px 0 18px; flex-wrap:wrap; }
+    /* base */
+    *{ box-sizing:border-box; }
+    body{
+      font-family: Arial, sans-serif;
+      background:var(--bg);
+      margin:0;
+      padding:20px;
+      color:var(--text);
+    }
+
+    /* ✅ 版面置中：所有內容包在 container */
+    .container{
+      max-width: 1100px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    header h2{
+      margin: 0 0 12px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-size: 26px;
+      font-weight: 900;
+    }
+
+    /* ✅ tabs 無障礙 + 置中 */
+    .tabs{
+      display:flex;
+      gap:10px;
+      margin: 12px 0 18px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
     .tab-btn{
       padding:10px 12px;
       border:none;
       border-radius:999px;
       cursor:pointer;
-      font-weight:800;
+      font-weight:900;
       background:#eee;
       color:#111;
     }
     .tab-btn.active{ background:#111; color:#fff; }
+    .tab-btn:focus-visible{ outline: var(--focus); outline-offset: 2px; }
 
+    /* pages */
     .page { display:none; }
     .page.active { display:block; }
 
-    .slot { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+    /* layout rows */
+    .row{
+      display:flex;
+      gap:16px;
+      flex-wrap:wrap;
+      align-items:stretch;
+    }
+
+    /* cards */
+    .card{
+      background:var(--card);
+      padding:16px;
+      border-radius:var(--radius);
+      width:300px;
+      box-shadow:var(--shadow);
+    }
+    .big{ font-size:22px; font-weight:800; margin:6px 0; }
+    .muted{ color:var(--muted); font-size:14px; }
+
+    .slot{ display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
     .time-tag{
       display:inline-block;
       padding:4px 10px;
       border-radius:999px;
       background:#eee;
       font-size:13px;
-      font-weight:700;
+      font-weight:800;
       color:#111;
       letter-spacing:.3px;
     }
 
-    .input, input[type="time"], input[type="text"]{
+    /* inputs/buttons */
+    input[type="time"], input[type="text"]{
       width: 100%;
-      padding: 8px 10px;
+      padding: 10px 12px;
       border: 1px solid #ddd;
       border-radius: 10px;
       outline: none;
-      box-sizing: border-box;
       margin-top: 6px;
       margin-bottom: 10px;
       background: #fff;
+      font-size: 16px; /* ✅ 手機避免縮放/太小 */
     }
+    input:focus-visible{ outline: var(--focus); outline-offset: 2px; }
+
     button{
       padding: 10px 12px;
       border: none;
       border-radius: 10px;
       cursor: pointer;
-      font-weight: 700;
+      font-weight: 900;
     }
     .btn-primary{ background:#111; color:#fff; }
     .btn-ghost{ background:#eee; color:#111; }
-    .msg { margin-top: 8px; font-size: 14px; color:#444; }
+    button:focus-visible{ outline: var(--focus); outline-offset: 2px; }
 
-    table { width:100%; border-collapse:collapse; }
-    th, td { padding:10px; border-bottom:1px solid #eee; text-align:left; }
+    .msg{ margin-top: 8px; font-size: 14px; color:#444; }
+
+    table{ width:100%; border-collapse:collapse; }
+    th, td{ padding:10px; border-bottom:1px solid #eee; text-align:left; }
 
     /* ===== Calendar styles ===== */
-    .calendar-wrap { margin-top: 10px; }
-    .cal-head {
+    .calendar-wrap{ margin-top: 10px; }
+
+    /* ✅ 月曆卡片：手機不裁切，允許橫向滑動 */
+    .calendar-scroller{
+      overflow-x:auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 6px;
+    }
+
+    .cal-head{
       display:flex;
       justify-content:space-between;
       align-items:center;
@@ -80,20 +146,25 @@
       margin-top: 8px;
       margin-bottom: 10px;
     }
-    .cal-title { font-weight:900; font-size:18px; }
-    .cal-grid {
+    .cal-title{ font-weight:900; font-size:18px; }
+
+    /* ✅ grid：桌機 7 欄，手機可以縮欄但不會爆版 */
+    .cal-grid{
       display:grid;
-      grid-template-columns: repeat(7, minmax(90px, 1fr));
+      grid-template-columns: repeat(7, minmax(86px, 1fr));
       gap:10px;
+      min-width: 700px; /* ✅ 小螢幕時用 scroller 横向滑 */
     }
-    .dow {
+
+    .dow{
       font-size:13px;
       font-weight:900;
       color:#666;
       text-align:center;
       padding:6px 0;
     }
-    .day-cell {
+
+    .day-cell{
       background:#fff;
       border:1px solid #eee;
       border-radius:14px;
@@ -104,12 +175,14 @@
       position:relative;
       transition: transform .05s ease;
     }
-    .day-cell:hover { transform: translateY(-1px); }
-    .day-cell.dim { opacity:.45; }
-    .day-cell.selected { outline: 2px solid #111; }
-    .day-num { font-weight:900; font-size:16px; }
-    .badges { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
-    .badge {
+    .day-cell:hover{ transform: translateY(-1px); }
+    .day-cell.dim{ opacity:.45; }
+    .day-cell.selected{ outline: 2px solid #111; }
+    .day-cell:focus-visible{ outline: var(--focus); outline-offset: 2px; }
+
+    .day-num{ font-weight:900; font-size:16px; }
+    .badges{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+    .badge{
       display:inline-flex;
       gap:6px;
       align-items:center;
@@ -117,219 +190,242 @@
       border-radius:999px;
       background:#f3f3f3;
       font-size:12px;
-      font-weight:800;
+      font-weight:900;
     }
 
     /* day summary colors */
-    .day-cell.ok { background:#eef8f0; }     /* 全 DONE */
-    .day-cell.mixed { background:#fff7e6; }  /* DONE+MISSED */
-    .day-cell.bad { background:#fdeeee; }    /* 有 MISSED */
-    .day-cell.none { background:#ffffff; }   /* 沒資料 */
+    .day-cell.ok{ background:#eef8f0; }     /* 全 DONE */
+    .day-cell.mixed{ background:#fff7e6; }  /* DONE+MISSED */
+    .day-cell.bad{ background:#fdeeee; }    /* 有 MISSED */
+    .day-cell.none{ background:#ffffff; }   /* 沒資料 */
 
-    /* picker */
-    .select {
+    .select{
       padding: 10px 12px;
       border: 1px solid #ddd;
       border-radius: 10px;
       background: #fff;
-      font-weight: 800;
+      font-weight: 900;
     }
+    .select:focus-visible{ outline: var(--focus); outline-offset: 2px; }
 
     /* details list */
-    .detail-box {
+    .detail-box{
       margin-top: 14px;
       border-top: 1px solid #eee;
       padding-top: 12px;
     }
-
-    .detail-title {
+    .detail-title{
       font-weight: 900;
       margin-bottom: 8px;
-      font-size: 18px;           /* ⬅ 標題微放大 */
+      font-size: 18px;
     }
-
-    .detail-item {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      padding: 14px 0;           /* ⬅ 行距更舒服 */
-      border-bottom: 1px solid #f1f1f1;
-      flex-wrap: wrap;
+    .detail-item{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      padding:14px 0;
+      border-bottom:1px solid #f1f1f1;
+      flex-wrap:wrap;
     }
-
-    .detail-left {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;                  /* ⬅ 藥品與時間間距 */
+    .detail-left{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width: 240px;
     }
-
-    /* ✅ 藥品文字 */
-    .detail-left .muted {
-      font-size: 15px;           /* ⬅ 藥品放大 */
+    .detail-left .muted{
+      font-size: 15px; /* ✅ 藥品 */
       color: #444;
     }
-
-    /* ✅ 已服藥 / 漏服 標籤 */
-    .pill {
-      font-size: 14px;           /* ⬅ 狀態文字放大 */
+    .pill{
+      font-size: 14px; /* ✅ 狀態 */
       font-weight: 900;
-      padding: 6px 12px;         /* ⬅ 膠囊更好看 */
+      padding: 6px 12px;
       border-radius: 999px;
-      background: #f3f3f3;
-      display: inline-block;
+      background:#f3f3f3;
+      display:inline-block;
+      white-space: nowrap;
+    }
+
+    /* ✅ 手機 RWD：卡片變 1 欄，避免裁切 */
+    @media (max-width: 900px){
+      body{ padding: 14px; }
+      header h2{ font-size: 22px; }
+      .card{ width: 100%; }             /* 重要：卡片滿寬 */
+      .cal-title{ width:100%; }         /* 標題換行 */
+    }
+
+    /* ✅ 小手機：控制按鈕換行、避免擠爆 */
+    @media (max-width: 420px){
+      .tab-btn{ width: 100%; text-align:center; }
+      button, .select{ width: 100%; }
+      .cal-head > div{ width: 100%; }
+    }
+
+    /* ✅ 無障礙：減少動態效果 */
+    @media (prefers-reduced-motion: reduce){
+      .day-cell{ transition:none; }
+      .day-cell:hover{ transform:none; }
     }
   </style>
 </head>
 
 <body>
-<h2>💊 智慧藥盒 Dashboard</h2>
+  <div class="container">
+    <header>
+      <h2 aria-label="智慧藥盒儀表板">💊 智慧藥盒 Dashboard</h2>
+    </header>
 
-<div class="tabs">
-  <button id="tab-status" class="tab-btn active">📡 狀態總覽</button>
-  <button id="tab-config" class="tab-btn">⚙️ 服藥設定</button>
-  <button id="tab-history" class="tab-btn">📒 服藥紀錄</button>
-</div>
-
-<!-- ================= Status Page ================= -->
-<div id="page-status" class="page active">
-  <div class="row">
-    <div class="card">
-      <div class="muted">時段</div>
-      <div class="slot">
-        <div class="big">早（Morning）</div>
-        <div id="time-morning" class="time-tag">--:--</div>
-      </div>
-
-      <div class="muted">需要服用藥物</div>
-      <div id="meds-morning" class="big">--</div>
-
-      <div class="muted">狀態</div>
-      <div id="state-morning" class="big">--</div>
-
-      <div class="muted">最後更新</div>
-      <div id="ts-morning" class="muted">--</div>
+    <!-- ✅ a11y tabs -->
+    <div class="tabs" role="tablist" aria-label="頁面切換">
+      <button id="tab-status" class="tab-btn active" role="tab" aria-selected="true" aria-controls="page-status">📡 狀態總覽</button>
+      <button id="tab-config" class="tab-btn" role="tab" aria-selected="false" aria-controls="page-config">⚙️ 服藥設定</button>
+      <button id="tab-history" class="tab-btn" role="tab" aria-selected="false" aria-controls="page-history">📒 服藥紀錄</button>
     </div>
 
-    <div class="card">
-      <div class="muted">時段</div>
-      <div class="slot">
-        <div class="big">中（Noon）</div>
-        <div id="time-noon" class="time-tag">--:--</div>
-      </div>
+    <main>
+      <!-- ================= Status Page ================= -->
+      <section id="page-status" class="page active" role="tabpanel" aria-labelledby="tab-status">
+        <div class="row">
+          <div class="card" aria-label="早晨狀態卡">
+            <div class="muted">時段</div>
+            <div class="slot">
+              <div class="big">早（Morning）</div>
+              <div id="time-morning" class="time-tag" aria-label="早晨設定時間">--:--</div>
+            </div>
 
-      <div class="muted">需要服用藥物</div>
-      <div id="meds-noon" class="big">--</div>
+            <div class="muted">需要服用藥物</div>
+            <div id="meds-morning" class="big" aria-label="早晨藥物">--</div>
 
-      <div class="muted">狀態</div>
-      <div id="state-noon" class="big">--</div>
+            <div class="muted">狀態</div>
+            <div id="state-morning" class="big" aria-label="早晨狀態">--</div>
 
-      <div class="muted">最後更新</div>
-      <div id="ts-noon" class="muted">--</div>
-    </div>
+            <div class="muted">最後更新</div>
+            <div id="ts-morning" class="muted" aria-label="早晨最後更新">--</div>
+          </div>
 
-    <div class="card">
-      <div class="muted">時段</div>
-      <div class="slot">
-        <div class="big">晚（Night）</div>
-        <div id="time-night" class="time-tag">--:--</div>
-      </div>
+          <div class="card" aria-label="中午狀態卡">
+            <div class="muted">時段</div>
+            <div class="slot">
+              <div class="big">中（Noon）</div>
+              <div id="time-noon" class="time-tag" aria-label="中午設定時間">--:--</div>
+            </div>
 
-      <div class="muted">需要服用藥物</div>
-      <div id="meds-night" class="big">--</div>
+            <div class="muted">需要服用藥物</div>
+            <div id="meds-noon" class="big" aria-label="中午藥物">--</div>
 
-      <div class="muted">狀態</div>
-      <div id="state-night" class="big">--</div>
+            <div class="muted">狀態</div>
+            <div id="state-noon" class="big" aria-label="中午狀態">--</div>
 
-      <div class="muted">最後更新</div>
-      <div id="ts-night" class="muted">--</div>
-    </div>
-  </div>
-</div>
+            <div class="muted">最後更新</div>
+            <div id="ts-noon" class="muted" aria-label="中午最後更新">--</div>
+          </div>
 
-<!-- ================= Config Page ================= -->
-<div id="page-config" class="page">
-  <div class="row">
-    <div class="card" style="width: 640px; max-width: 100%;">
-      <div class="big">⚙️ 服藥設定（下發到 Pico）</div>
-      <div class="muted">會 POST 到 /api/config，後端再 publish MQTT（retained）。</div>
+          <div class="card" aria-label="晚上狀態卡">
+            <div class="muted">時段</div>
+            <div class="slot">
+              <div class="big">晚（Night）</div>
+              <div id="time-night" class="time-tag" aria-label="晚上設定時間">--:--</div>
+            </div>
 
-      <div style="height:10px;"></div>
+            <div class="muted">需要服用藥物</div>
+            <div id="meds-night" class="big" aria-label="晚上藥物">--</div>
 
-      <div class="muted">早（morning）時間</div>
-      <input id="t-morning" type="time" value="08:00">
-      <div class="muted">早 藥品（用逗號分隔）</div>
-      <input id="m-morning" type="text" placeholder="普拿疼1顆, 維他命C500mg">
+            <div class="muted">狀態</div>
+            <div id="state-night" class="big" aria-label="晚上狀態">--</div>
 
-      <div class="muted">中（noon）時間</div>
-      <input id="t-noon" type="time" value="12:00">
-      <div class="muted">中 藥品（用逗號分隔）</div>
-      <input id="m-noon" type="text" placeholder="...">
-
-      <div class="muted">晚（night）時間</div>
-      <input id="t-night" type="time" value="20:00">
-      <div class="muted">晚 藥品（用逗號分隔）</div>
-      <input id="m-night" type="text" placeholder="...">
-
-      <div style="display:flex; gap:10px; flex-wrap:wrap;">
-        <button id="btn-load" class="btn-ghost">讀取目前設定</button>
-        <button id="btn-save" class="btn-primary">送出設定（Publish MQTT）</button>
-      </div>
-
-      <div id="save-msg" class="msg"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ================= History Page ================= -->
-<div id="page-history" class="page">
-  <div class="row">
-    <div class="card" style="width: 980px; max-width: 100%;">
-      <div class="big">📒 月曆式服藥紀錄</div>
-      <div class="muted">資料來源：GET /api/history?days=30（DONE / MISSED）。格子顏色：✅=淡綠、❌=淡紅、混合=淡黃。</div>
-
-      <div class="cal-head">
-        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-          <button id="btn-prev-month" class="btn-ghost">◀ 上個月</button>
-          <button id="btn-today" class="btn-ghost">今天</button>
-          <select id="month-picker" class="select"></select>
-          <button id="btn-next-month" class="btn-ghost">下個月 ▶</button>
+            <div class="muted">最後更新</div>
+            <div id="ts-night" class="muted" aria-label="晚上最後更新">--</div>
+          </div>
         </div>
-        <div id="cal-title" class="cal-title">--</div>
-      </div>
+      </section>
 
-      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:4px;">
-        <button id="btn-history" class="btn-primary">重新載入（近 30 天）</button>
-        <div id="history-msg" class="msg"></div>
-      </div>
+      <!-- ================= Config Page ================= -->
+      <section id="page-config" class="page" role="tabpanel" aria-labelledby="tab-config">
+        <div class="row">
+          <div class="card" style="width: 100%; max-width: 760px;" aria-label="服藥設定">
+            <div class="big">⚙️ 服藥設定（下發到 Pico）</div>
+            <div class="muted">會 POST 到 /api/config，後端再 publish MQTT（retained）。</div>
 
-      <div class="calendar-wrap">
-        <div class="cal-grid" id="dow-row">
-          <div class="dow">一</div><div class="dow">二</div><div class="dow">三</div><div class="dow">四</div><div class="dow">五</div><div class="dow">六</div><div class="dow">日</div>
+            <div style="height:10px;"></div>
+
+            <label class="muted" for="t-morning">早（morning）時間</label>
+            <input id="t-morning" type="time" value="08:00" aria-label="早晨時間">
+            <label class="muted" for="m-morning">早 藥品（用逗號分隔）</label>
+            <input id="m-morning" type="text" placeholder="普拿疼1顆, 維他命C500mg" aria-label="早晨藥品">
+
+            <label class="muted" for="t-noon">中（noon）時間</label>
+            <input id="t-noon" type="time" value="12:00" aria-label="中午時間">
+            <label class="muted" for="m-noon">中 藥品（用逗號分隔）</label>
+            <input id="m-noon" type="text" placeholder="..." aria-label="中午藥品">
+
+            <label class="muted" for="t-night">晚（night）時間</label>
+            <input id="t-night" type="time" value="20:00" aria-label="晚上時間">
+            <label class="muted" for="m-night">晚 藥品（用逗號分隔）</label>
+            <input id="m-night" type="text" placeholder="..." aria-label="晚上藥品">
+
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <button id="btn-load" class="btn-ghost" aria-label="讀取目前設定">讀取目前設定</button>
+              <button id="btn-save" class="btn-primary" aria-label="送出設定">送出設定（Publish MQTT）</button>
+            </div>
+
+            <div id="save-msg" class="msg" role="status" aria-live="polite"></div>
+          </div>
         </div>
-        <div class="cal-grid" id="cal-grid"></div>
+      </section>
 
-        <div class="detail-box">
-          <div id="detail-title" class="detail-title">選取日期：--</div>
-          <div id="detail-list" class="muted">點選上方日期格子查看詳細紀錄</div>
+      <!-- ================= History Page ================= -->
+      <section id="page-history" class="page" role="tabpanel" aria-labelledby="tab-history">
+        <div class="row">
+          <div class="card" style="width: 100%;" aria-label="月曆式服藥紀錄">
+            <div class="big">📒 月曆式服藥紀錄</div>
+            <div class="muted">資料來源：GET /api/history?days=30（DONE / MISSED）。格子顏色：✅=淡綠、❌=淡紅、混合=淡黃。</div>
+
+            <div class="cal-head" aria-label="月曆操作列">
+              <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <button id="btn-prev-month" class="btn-ghost" aria-label="上個月">◀ 上個月</button>
+                <button id="btn-today" class="btn-ghost" aria-label="回到今天">今天</button>
+                <select id="month-picker" class="select" aria-label="選擇月份"></select>
+                <button id="btn-next-month" class="btn-ghost" aria-label="下個月">下個月 ▶</button>
+              </div>
+              <div id="cal-title" class="cal-title" aria-label="目前顯示月份">--</div>
+            </div>
+
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:4px;">
+              <button id="btn-history" class="btn-primary" aria-label="重新載入近三十天紀錄">重新載入（近 30 天）</button>
+              <div id="history-msg" class="msg" role="status" aria-live="polite"></div>
+            </div>
+
+            <div class="calendar-wrap">
+              <!-- ✅ 小螢幕可滑動，避免裁切 -->
+              <div class="calendar-scroller" aria-label="月曆區塊（可左右滑動）">
+                <div class="cal-grid" id="dow-row" aria-hidden="true">
+                  <div class="dow">一</div><div class="dow">二</div><div class="dow">三</div><div class="dow">四</div><div class="dow">五</div><div class="dow">六</div><div class="dow">日</div>
+                </div>
+                <div class="cal-grid" id="cal-grid" role="grid" aria-label="月曆日期格"></div>
+              </div>
+
+              <div class="detail-box" aria-label="日期詳細清單">
+                <div id="detail-title" class="detail-title">選取日期：--</div>
+                <div id="detail-list" class="muted">點選上方日期格子查看詳細紀錄</div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   </div>
-</div>
 
 <script>
 /* ========== API 設定 ========== */
 const API_BASE = "https://approvably-creamlaid-vanetta.ngrok-free.dev";
-
 const API_STATE   = `${API_BASE}/api/state`;
 const API_CONFIG  = `${API_BASE}/api/config`;
-const API_HISTORY = `${API_BASE}/api/history?days=30`; // ✅ 月曆建議至少 30 天
+const API_HISTORY = `${API_BASE}/api/history?days=30`;
 
 const FETCH_GET_OPTS = {
   cache: "no-store",
-  headers: {
-    "ngrok-skip-browser-warning": "true"
-  }
+  headers: { "ngrok-skip-browser-warning": "true" }
 };
 
 function fetchPostJson(url, payloadObj) {
@@ -358,19 +454,16 @@ function fmtTs(sec) {
   if (!Number.isFinite(n) || n <= 0) return "--";
   return new Date(n * 1000).toLocaleString();
 }
-
 function renderMeds(meds) {
   if (!meds) return "--";
   if (Array.isArray(meds)) return meds.length ? meds.join("、") : "--";
   const s = String(meds).trim();
   return s ? s : "--";
 }
-
 function renderTime(t) {
   const s = String(t || "").trim();
   return s ? s : "--:--";
 }
-
 function parseMeds(text) {
   return text.split(",").map(s => s.trim()).filter(Boolean);
 }
@@ -402,13 +495,11 @@ async function refreshState() {
     });
   }
 }
-
 function startStatePolling() {
   if (stateTimer) return;
   refreshState();
   stateTimer = setInterval(refreshState, 1000);
 }
-
 function stopStatePolling() {
   if (!stateTimer) return;
   clearInterval(stateTimer);
@@ -437,7 +528,6 @@ function fillFromConfig(cfg) {
     }
   });
 }
-
 async function loadConfig() {
   const msg = document.getElementById("save-msg");
   if (msg) msg.textContent = "讀取設定中...";
@@ -448,7 +538,6 @@ async function loadConfig() {
 
   if (msg) msg.textContent = `✅ 已讀取設定（最後設定：${fmtTs(cfg.updated_ts)}）`;
 }
-
 async function saveConfig() {
   const msg = document.getElementById("save-msg");
   if (msg) msg.textContent = "送出中...";
@@ -466,49 +555,36 @@ async function saveConfig() {
   if (!r.ok) throw new Error(data.detail || "POST /api/config failed");
 
   if (msg) msg.textContent = `✅ 已送出設定並 publish MQTT（最後設定：${fmtTs(data.updated_ts)}）`;
-
   loadConfig().catch(()=>{});
 }
 
 /* ========== Calendar History (Month view) ========== */
-let historyRows = [];         // raw rows from /api/history
-let dayMap = new Map();       // key: YYYY-MM-DD -> rows[]
-let calCursor = new Date();   // current month view cursor
-let selectedDateStr = null;   // YYYY-MM-DD
+let historyRows = [];
+let dayMap = new Map();
+let calCursor = new Date();
+let selectedDateStr = null;
 
 function pad2(n){ return String(n).padStart(2,"0"); }
 function ymd(d){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
 function monthKey(d){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}`; }
-
-function parseDateStr(s) {
-  // s: YYYY-MM-DD
-  const [y,m,dd] = s.split("-").map(Number);
-  return new Date(y, m-1, dd);
-}
-
 function startOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
 function endOfMonth(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0); }
-
 function mondayBasedDow(d){
-  // return 0..6 (Mon..Sun)
-  const js = d.getDay(); // 0 Sun..6 Sat
-  return (js + 6) % 7;   // Mon=0 ... Sun=6
+  const js = d.getDay();
+  return (js + 6) % 7;
 }
-
 function monthTitle(d){
   return `${d.getFullYear()} 年 ${pad2(d.getMonth()+1)} 月`;
 }
-
 function buildDayMap(rows){
   const m = new Map();
   for (const x of rows) {
     const ts = x.device_ts ? String(x.device_ts) : "";
-    const dateStr = ts ? ts.slice(0,10) : null; // "YYYY-MM-DD"
+    const dateStr = ts ? ts.slice(0,10) : null;
     if (!dateStr) continue;
     if (!m.has(dateStr)) m.set(dateStr, []);
     m.get(dateStr).push(x);
   }
-  // sort within day by time desc if possible
   for (const [k, arr] of m.entries()) {
     arr.sort((a,b) => {
       const ta = (a.device_ts || "").slice(11,19);
@@ -518,7 +594,6 @@ function buildDayMap(rows){
   }
   return m;
 }
-
 function daySummaryClass(rows) {
   if (!rows || !rows.length) return "none";
   const doneCnt = rows.filter(r => r.state === "DONE").length;
@@ -528,7 +603,6 @@ function daySummaryClass(rows) {
   if (missCnt === 0 && doneCnt > 0) return "ok";
   return "none";
 }
-
 function buildMonthPicker() {
   const sel = document.getElementById("month-picker");
   if (!sel) return;
@@ -544,14 +618,50 @@ function buildMonthPicker() {
     opt.textContent = `${d.getFullYear()} / ${pad2(d.getMonth()+1)}`;
     sel.appendChild(opt);
   }
-
   sel.value = monthKey(calCursor);
 }
-
 function setMonthPickerToCursor() {
   const sel = document.getElementById("month-picker");
   if (!sel) return;
   sel.value = monthKey(calCursor);
+}
+function boxLabel(box){
+  if (box === "morning") return "早（Morning）";
+  if (box === "noon") return "中（Noon）";
+  if (box === "night") return "晚（Night）";
+  return box || "--";
+}
+function renderDayDetails(dateStr){
+  const title = document.getElementById("detail-title");
+  const list = document.getElementById("detail-list");
+
+  title.textContent = `選取日期：${dateStr}`;
+
+  const rows = (dayMap.get(dateStr) || []).slice();
+  if (!rows.length) {
+    list.className = "muted";
+    list.textContent = "（當天沒有 DONE / MISSED 紀錄）";
+    return;
+  }
+
+  list.className = "";
+  list.innerHTML = rows.map(x => {
+    const timeStr = x.device_ts ? String(x.device_ts).slice(11,19) : "--:--:--";
+    const medsStr = renderMeds(x.meds || []);
+    const pill = (x.state === "DONE")
+      ? `<span class="pill" aria-label="已服藥">✅ 已服藥</span>`
+      : `<span class="pill" aria-label="漏服">❌ 漏服</span>`;
+
+    return `
+      <div class="detail-item">
+        <div class="detail-left">
+          <div><b>${timeStr}</b>　${boxLabel(x.box)}</div>
+          <div class="muted">藥品：${medsStr}</div>
+        </div>
+        <div>${pill}</div>
+      </div>
+    `;
+  }).join("");
 }
 
 function renderCalendar(){
@@ -566,10 +676,10 @@ function renderCalendar(){
   const m1 = endOfMonth(calCursor);
 
   const start = new Date(m0);
-  start.setDate(start.getDate() - mondayBasedDow(m0)); // back to Monday
+  start.setDate(start.getDate() - mondayBasedDow(m0));
 
   const end = new Date(m1);
-  end.setDate(end.getDate() + (6 - mondayBasedDow(m1))); // forward to Sunday
+  end.setDate(end.getDate() + (6 - mondayBasedDow(m1)));
 
   const cells = [];
   for (let d = new Date(start); d <= end; d.setDate(d.getDate()+1)) {
@@ -587,8 +697,13 @@ function renderCalendar(){
     if (missCnt) badges += `<span class="badge">❌ ${missCnt}</span>`;
     if (!badges) badges = `<span class="badge">—</span>`;
 
+    // ✅ 可鍵盤操作：button role + tabindex
     cells.push(`
-      <div class="day-cell ${cls} ${isThisMonth ? "" : "dim"} ${isSelected ? "selected" : ""}" data-date="${dateStr}">
+      <div class="day-cell ${cls} ${isThisMonth ? "" : "dim"} ${isSelected ? "selected" : ""}"
+           role="button"
+           tabindex="0"
+           aria-label="${dateStr}，已服藥 ${doneCnt} 筆，漏服 ${missCnt} 筆"
+           data-date="${dateStr}">
         <div class="day-num">${d.getDate()}</div>
         <div class="badges">${badges}</div>
       </div>
@@ -597,68 +712,28 @@ function renderCalendar(){
 
   gridEl.innerHTML = cells.join("");
 
-  // click handlers
+  const activate = (dateStr) => {
+    selectedDateStr = dateStr;
+    renderCalendar();
+    renderDayDetails(selectedDateStr);
+  };
+
   gridEl.querySelectorAll(".day-cell").forEach(el => {
-    el.addEventListener("click", () => {
-      selectedDateStr = el.getAttribute("data-date");
-      renderCalendar();
-      renderDayDetails(selectedDateStr);
+    el.addEventListener("click", () => activate(el.getAttribute("data-date")));
+    el.addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter" || ev.key === " ") {
+        ev.preventDefault();
+        activate(el.getAttribute("data-date"));
+      }
     });
   });
 
-  // auto pick selected date if missing
   if (!selectedDateStr) {
     selectedDateStr = ymd(new Date());
     renderDayDetails(selectedDateStr);
-    // rerender to show selected outline
     renderCalendar();
     return;
   }
-}
-
-function boxLabel(box){
-  if (box === "morning") return "早（Morning）";
-  if (box === "noon") return "中（Noon）";
-  if (box === "night") return "晚（Night）";
-  return box || "--";
-}
-
-function stateLabel(st){
-  return STATUS_TEXT[st] ?? (st || "--");
-}
-
-function renderDayDetails(dateStr){
-  const title = document.getElementById("detail-title");
-  const list = document.getElementById("detail-list");
-
-  title.textContent = `選取日期：${dateStr}`;
-
-  const rows = (dayMap.get(dateStr) || []).slice();
-
-  if (!rows.length) {
-    list.className = "muted";
-    list.textContent = "（當天沒有 DONE / MISSED 紀錄）";
-    return;
-  }
-
-  list.className = "";
-  list.innerHTML = rows.map(x => {
-    const timeStr = x.device_ts ? String(x.device_ts).slice(11,19) : "--:--:--";
-    const medsStr = renderMeds(x.meds || []);
-    const pill = (x.state === "DONE")
-      ? `<span class="pill">✅ 已服藥</span>`
-      : `<span class="pill">❌ 漏服</span>`;
-
-    return `
-      <div class="detail-item">
-        <div class="detail-left">
-          <div><b>${timeStr}</b>　${boxLabel(x.box)}</div>
-          <div class="muted">藥品：${medsStr}</div>
-        </div>
-        <div>${pill}</div>
-      </div>
-    `;
-  }).join("");
 }
 
 async function loadHistory(){
@@ -674,40 +749,33 @@ async function loadHistory(){
 
   if (msg) msg.textContent = `✅ 已載入（${historyRows.length} 筆，近 ${data.days ?? 30} 天）`;
 
-  // keep cursor on current month by default
   renderCalendar();
 }
 
 /* ========== Tabs ========== */
 function setActiveTab(which) {
-  const tabStatus = document.getElementById("tab-status");
-  const tabConfig = document.getElementById("tab-config");
-  const tabHistory = document.getElementById("tab-history");
+  const tabs = [
+    {btn:"tab-status", page:"page-status"},
+    {btn:"tab-config", page:"page-config"},
+    {btn:"tab-history", page:"page-history"},
+  ];
 
-  const pageStatus = document.getElementById("page-status");
-  const pageConfig = document.getElementById("page-config");
-  const pageHistory = document.getElementById("page-history");
+  tabs.forEach(t=>{
+    const b = document.getElementById(t.btn);
+    const p = document.getElementById(t.page);
+    const active = (which === t.page.replace("page-",""));
+    b.classList.toggle("active", active);
+    b.setAttribute("aria-selected", active ? "true" : "false");
+    p.classList.toggle("active", active);
+  });
 
-  [tabStatus, tabConfig, tabHistory].forEach(x => x.classList.remove("active"));
-  [pageStatus, pageConfig, pageHistory].forEach(x => x.classList.remove("active"));
+  if (which === "status") { startStatePolling(); }
+  else { stopStatePolling(); }
 
-  if (which === "status") {
-    tabStatus.classList.add("active");
-    pageStatus.classList.add("active");
-    startStatePolling();
-  } else if (which === "config") {
-    tabConfig.classList.add("active");
-    pageConfig.classList.add("active");
-    stopStatePolling();
-    loadConfig().catch(()=>{});
-  } else {
-    tabHistory.classList.add("active");
-    pageHistory.classList.add("active");
-    stopStatePolling();
-    loadHistory().catch(err=>{
-      document.getElementById("history-msg").textContent = `❌ 載入失敗：${err.message}`;
-    });
-  }
+  if (which === "config") loadConfig().catch(()=>{});
+  if (which === "history") loadHistory().catch(err=>{
+    document.getElementById("history-msg").textContent = `❌ 載入失敗：${err.message}`;
+  });
 }
 
 /* ========== Events ========== */
@@ -727,7 +795,6 @@ document.getElementById("btn-save").addEventListener("click", () => {
   });
 });
 
-// calendar controls
 document.getElementById("btn-history").addEventListener("click", () => {
   loadHistory().catch(err => {
     document.getElementById("history-msg").textContent = `❌ 載入失敗：${err.message}`;
