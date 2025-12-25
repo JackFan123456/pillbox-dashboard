@@ -141,17 +141,43 @@
       border-top: 1px solid #eee;
       padding-top: 12px;
     }
-    .detail-title { font-weight:900; margin-bottom:8px; }
-    .detail-item {
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      padding:10px 0;
-      border-bottom:1px solid #f1f1f1;
-      flex-wrap:wrap;
+
+    .detail-title {
+      font-weight: 900;
+      margin-bottom: 8px;
+      font-size: 18px;           /* ⬅ 標題微放大 */
     }
-    .detail-left { display:flex; flex-direction:column; gap:4px; }
-    .pill { font-size:12px; font-weight:900; padding:4px 8px; border-radius:999px; background:#f3f3f3; display:inline-block; }
+
+    .detail-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 14px 0;           /* ⬅ 行距更舒服 */
+      border-bottom: 1px solid #f1f1f1;
+      flex-wrap: wrap;
+    }
+
+    .detail-left {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;                  /* ⬅ 藥品與時間間距 */
+    }
+
+    /* ✅ 藥品文字 */
+    .detail-left .muted {
+      font-size: 15px;           /* ⬅ 藥品放大 */
+      color: #444;
+    }
+
+    /* ✅ 已服藥 / 漏服 標籤 */
+    .pill {
+      font-size: 14px;           /* ⬅ 狀態文字放大 */
+      font-weight: 900;
+      padding: 6px 12px;         /* ⬅ 膠囊更好看 */
+      border-radius: 999px;
+      background: #f3f3f3;
+      display: inline-block;
+    }
   </style>
 </head>
 
