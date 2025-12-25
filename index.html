@@ -135,23 +135,30 @@
       font-weight: 800;
     }
 
-    /* details list */
-    .detail-box {
-      margin-top: 14px;
-      border-top: 1px solid #eee;
-      padding-top: 12px;
+    /* ===== 放大「選取日期」詳細清單字體 ===== */
+    .detail-title{
+      font-size: 18px;      /* 原本偏小，放大標題 */
+      font-weight: 900;
     }
-    .detail-title { font-weight:900; margin-bottom:8px; }
-    .detail-item {
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      padding:10px 0;
-      border-bottom:1px solid #f1f1f1;
-      flex-wrap:wrap;
+
+    .detail-item{
+      padding: 14px 0;      /* 行距更舒服 */
     }
-    .detail-left { display:flex; flex-direction:column; gap:4px; }
-    .pill { font-size:12px; font-weight:900; padding:4px 8px; border-radius:999px; background:#f3f3f3; display:inline-block; }
+
+    .detail-left > div:first-child{
+      font-size: 16px;      /* 時間 + 時段那行 */
+      font-weight: 800;
+    }
+
+    .detail-left .muted{
+      font-size: 15px;      /* 藥品那行 */
+      line-height: 1.6;
+    }
+
+    .pill{
+      font-size: 14px;      /* 右側「已服藥/漏服」膠囊 */
+      padding: 6px 10px;
+    }
   </style>
 </head>
 
