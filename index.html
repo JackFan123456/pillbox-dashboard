@@ -17,12 +17,7 @@
     .big { font-size:22px; font-weight:700; margin:6px 0; }
     .muted { color:#666; font-size:14px; }
 
-    .tabs {
-      display:flex;
-      gap:10px;
-      margin: 14px 0 18px;
-      flex-wrap:wrap;
-    }
+    .tabs { display:flex; gap:10px; margin:14px 0 18px; flex-wrap:wrap; }
     .tab-btn{
       padding:10px 12px;
       border:none;
@@ -32,10 +27,7 @@
       background:#eee;
       color:#111;
     }
-    .tab-btn.active{
-      background:#111;
-      color:#fff;
-    }
+    .tab-btn.active{ background:#111; color:#fff; }
 
     .page { display:none; }
     .page.active { display:block; }
@@ -76,6 +68,90 @@
 
     table { width:100%; border-collapse:collapse; }
     th, td { padding:10px; border-bottom:1px solid #eee; text-align:left; }
+
+    /* ===== Calendar styles ===== */
+    .calendar-wrap { margin-top: 10px; }
+    .cal-head {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top: 8px;
+      margin-bottom: 10px;
+    }
+    .cal-title { font-weight:900; font-size:18px; }
+    .cal-grid {
+      display:grid;
+      grid-template-columns: repeat(7, minmax(90px, 1fr));
+      gap:10px;
+    }
+    .dow {
+      font-size:13px;
+      font-weight:900;
+      color:#666;
+      text-align:center;
+      padding:6px 0;
+    }
+    .day-cell {
+      background:#fff;
+      border:1px solid #eee;
+      border-radius:14px;
+      padding:10px;
+      min-height:88px;
+      box-shadow:0 1px 8px rgba(0,0,0,.05);
+      cursor:pointer;
+      position:relative;
+      transition: transform .05s ease;
+    }
+    .day-cell:hover { transform: translateY(-1px); }
+    .day-cell.dim { opacity:.45; }
+    .day-cell.selected { outline: 2px solid #111; }
+    .day-num { font-weight:900; font-size:16px; }
+    .badges { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+    .badge {
+      display:inline-flex;
+      gap:6px;
+      align-items:center;
+      padding:4px 8px;
+      border-radius:999px;
+      background:#f3f3f3;
+      font-size:12px;
+      font-weight:800;
+    }
+
+    /* day summary colors */
+    .day-cell.ok { background:#eef8f0; }     /* 全 DONE */
+    .day-cell.mixed { background:#fff7e6; }  /* DONE+MISSED */
+    .day-cell.bad { background:#fdeeee; }    /* 有 MISSED */
+    .day-cell.none { background:#ffffff; }   /* 沒資料 */
+
+    /* picker */
+    .select {
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background: #fff;
+      font-weight: 800;
+    }
+
+    /* details list */
+    .detail-box {
+      margin-top: 14px;
+      border-top: 1px solid #eee;
+      padding-top: 12px;
+    }
+    .detail-title { font-weight:900; margin-bottom:8px; }
+    .detail-item {
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      padding:10px 0;
+      border-bottom:1px solid #f1f1f1;
+      flex-wrap:wrap;
+    }
+    .detail-left { display:flex; flex-direction:column; gap:4px; }
+    .pill { font-size:12px; font-weight:900; padding:4px 8px; border-radius:999px; background:#f3f3f3; display:inline-block; }
   </style>
 </head>
 
@@ -182,28 +258,34 @@
 <div id="page-history" class="page">
   <div class="row">
     <div class="card" style="width: 980px; max-width: 100%;">
-      <div class="big">📒 過去 7 天服藥紀錄（只顯示最終結果）</div>
-      <div class="muted">資料來源：GET /api/history?days=7（DONE / MISSED）</div>
+      <div class="big">📒 月曆式服藥紀錄</div>
+      <div class="muted">資料來源：GET /api/history?days=30（DONE / MISSED）。格子顏色：✅=淡綠、❌=淡紅、混合=淡黃。</div>
 
-      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:12px;">
-        <button id="btn-history" class="btn-primary">重新載入</button>
+      <div class="cal-head">
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <button id="btn-prev-month" class="btn-ghost">◀ 上個月</button>
+          <button id="btn-today" class="btn-ghost">今天</button>
+          <select id="month-picker" class="select"></select>
+          <button id="btn-next-month" class="btn-ghost">下個月 ▶</button>
+        </div>
+        <div id="cal-title" class="cal-title">--</div>
+      </div>
+
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:4px;">
+        <button id="btn-history" class="btn-primary">重新載入（近 30 天）</button>
         <div id="history-msg" class="msg"></div>
       </div>
 
-      <div style="overflow:auto; margin-top:10px;">
-        <table>
-          <thead>
-            <tr>
-              <th>時間</th>
-              <th>時段</th>
-              <th>結果</th>
-              <th>服用藥品</th>
-            </tr>
-          </thead>
-          <tbody id="history-body">
-            <tr><td colspan="4" class="muted">--</td></tr>
-          </tbody>
-        </table>
+      <div class="calendar-wrap">
+        <div class="cal-grid" id="dow-row">
+          <div class="dow">一</div><div class="dow">二</div><div class="dow">三</div><div class="dow">四</div><div class="dow">五</div><div class="dow">六</div><div class="dow">日</div>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+
+        <div class="detail-box">
+          <div id="detail-title" class="detail-title">選取日期：--</div>
+          <div id="detail-list" class="muted">點選上方日期格子查看詳細紀錄</div>
+        </div>
       </div>
     </div>
   </div>
@@ -211,16 +293,12 @@
 
 <script>
 /* ========== API 設定 ========== */
-// 1. 在開發時，使用 "http://127.0.0.1:8000"
-// 2. 使用 ngrok 時，改成例如 "https://xxxx-xxxx.ngrok-free.app"
-// 3. 部署到 Render 時，改成例如 "https://your-app.onrender.com"
 const API_BASE = "https://approvably-creamlaid-vanetta.ngrok-free.dev";
 
 const API_STATE   = `${API_BASE}/api/state`;
 const API_CONFIG  = `${API_BASE}/api/config`;
-const API_HISTORY = `${API_BASE}/api/history?days=7`;
+const API_HISTORY = `${API_BASE}/api/history?days=30`; // ✅ 月曆建議至少 30 天
 
-/* ✅ 統一把 ngrok header + no-store 放這裡，所有 GET 直接用它 */
 const FETCH_GET_OPTS = {
   cache: "no-store",
   headers: {
@@ -228,7 +306,6 @@ const FETCH_GET_OPTS = {
   }
 };
 
-/* ✅ POST 也要帶 ngrok header（但還要 Content-Type） */
 function fetchPostJson(url, payloadObj) {
   return fetch(url, {
     method: "POST",
@@ -367,7 +444,152 @@ async function saveConfig() {
   loadConfig().catch(()=>{});
 }
 
-/* ========== History ========== */
+/* ========== Calendar History (Month view) ========== */
+let historyRows = [];         // raw rows from /api/history
+let dayMap = new Map();       // key: YYYY-MM-DD -> rows[]
+let calCursor = new Date();   // current month view cursor
+let selectedDateStr = null;   // YYYY-MM-DD
+
+function pad2(n){ return String(n).padStart(2,"0"); }
+function ymd(d){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function monthKey(d){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}`; }
+
+function parseDateStr(s) {
+  // s: YYYY-MM-DD
+  const [y,m,dd] = s.split("-").map(Number);
+  return new Date(y, m-1, dd);
+}
+
+function startOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
+function endOfMonth(d){ return new Date(d.getFullYear(), d.getMonth()+1, 0); }
+
+function mondayBasedDow(d){
+  // return 0..6 (Mon..Sun)
+  const js = d.getDay(); // 0 Sun..6 Sat
+  return (js + 6) % 7;   // Mon=0 ... Sun=6
+}
+
+function monthTitle(d){
+  return `${d.getFullYear()} 年 ${pad2(d.getMonth()+1)} 月`;
+}
+
+function buildDayMap(rows){
+  const m = new Map();
+  for (const x of rows) {
+    const ts = x.device_ts ? String(x.device_ts) : "";
+    const dateStr = ts ? ts.slice(0,10) : null; // "YYYY-MM-DD"
+    if (!dateStr) continue;
+    if (!m.has(dateStr)) m.set(dateStr, []);
+    m.get(dateStr).push(x);
+  }
+  // sort within day by time desc if possible
+  for (const [k, arr] of m.entries()) {
+    arr.sort((a,b) => {
+      const ta = (a.device_ts || "").slice(11,19);
+      const tb = (b.device_ts || "").slice(11,19);
+      return tb.localeCompare(ta);
+    });
+  }
+  return m;
+}
+
+function daySummaryClass(rows) {
+  if (!rows || !rows.length) return "none";
+  const doneCnt = rows.filter(r => r.state === "DONE").length;
+  const missCnt = rows.filter(r => r.state === "MISSED").length;
+  if (missCnt > 0 && doneCnt === 0) return "bad";
+  if (missCnt > 0 && doneCnt > 0) return "mixed";
+  if (missCnt === 0 && doneCnt > 0) return "ok";
+  return "none";
+}
+
+function buildMonthPicker() {
+  const sel = document.getElementById("month-picker");
+  if (!sel) return;
+
+  const base = new Date();
+  const start = new Date(base.getFullYear(), base.getMonth() - 12, 1);
+
+  sel.innerHTML = "";
+  for (let i = 0; i < 25; i++) {
+    const d = new Date(start.getFullYear(), start.getMonth() + i, 1);
+    const opt = document.createElement("option");
+    opt.value = `${d.getFullYear()}-${pad2(d.getMonth()+1)}`;
+    opt.textContent = `${d.getFullYear()} / ${pad2(d.getMonth()+1)}`;
+    sel.appendChild(opt);
+  }
+
+  sel.value = monthKey(calCursor);
+}
+
+function setMonthPickerToCursor() {
+  const sel = document.getElementById("month-picker");
+  if (!sel) return;
+  sel.value = monthKey(calCursor);
+}
+
+function renderCalendar(){
+  const gridEl = document.getElementById("cal-grid");
+  const titleEl = document.getElementById("cal-title");
+  titleEl.textContent = monthTitle(calCursor);
+
+  buildMonthPicker();
+  setMonthPickerToCursor();
+
+  const m0 = startOfMonth(calCursor);
+  const m1 = endOfMonth(calCursor);
+
+  const start = new Date(m0);
+  start.setDate(start.getDate() - mondayBasedDow(m0)); // back to Monday
+
+  const end = new Date(m1);
+  end.setDate(end.getDate() + (6 - mondayBasedDow(m1))); // forward to Sunday
+
+  const cells = [];
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate()+1)) {
+    const dateStr = ymd(d);
+    const isThisMonth = d.getMonth() === calCursor.getMonth();
+    const rows = dayMap.get(dateStr) || [];
+    const cls = daySummaryClass(rows);
+    const isSelected = selectedDateStr === dateStr;
+
+    const doneCnt = rows.filter(r => r.state === "DONE").length;
+    const missCnt = rows.filter(r => r.state === "MISSED").length;
+
+    let badges = "";
+    if (doneCnt) badges += `<span class="badge">✅ ${doneCnt}</span>`;
+    if (missCnt) badges += `<span class="badge">❌ ${missCnt}</span>`;
+    if (!badges) badges = `<span class="badge">—</span>`;
+
+    cells.push(`
+      <div class="day-cell ${cls} ${isThisMonth ? "" : "dim"} ${isSelected ? "selected" : ""}" data-date="${dateStr}">
+        <div class="day-num">${d.getDate()}</div>
+        <div class="badges">${badges}</div>
+      </div>
+    `);
+  }
+
+  gridEl.innerHTML = cells.join("");
+
+  // click handlers
+  gridEl.querySelectorAll(".day-cell").forEach(el => {
+    el.addEventListener("click", () => {
+      selectedDateStr = el.getAttribute("data-date");
+      renderCalendar();
+      renderDayDetails(selectedDateStr);
+    });
+  });
+
+  // auto pick selected date if missing
+  if (!selectedDateStr) {
+    selectedDateStr = ymd(new Date());
+    renderDayDetails(selectedDateStr);
+    // rerender to show selected outline
+    renderCalendar();
+    return;
+  }
+}
+
 function boxLabel(box){
   if (box === "morning") return "早（Morning）";
   if (box === "noon") return "中（Noon）";
@@ -379,37 +601,55 @@ function stateLabel(st){
   return STATUS_TEXT[st] ?? (st || "--");
 }
 
+function renderDayDetails(dateStr){
+  const title = document.getElementById("detail-title");
+  const list = document.getElementById("detail-list");
+
+  title.textContent = `選取日期：${dateStr}`;
+
+  const rows = (dayMap.get(dateStr) || []).slice();
+
+  if (!rows.length) {
+    list.className = "muted";
+    list.textContent = "（當天沒有 DONE / MISSED 紀錄）";
+    return;
+  }
+
+  list.className = "";
+  list.innerHTML = rows.map(x => {
+    const timeStr = x.device_ts ? String(x.device_ts).slice(11,19) : "--:--:--";
+    const medsStr = renderMeds(x.meds || []);
+    const pill = (x.state === "DONE")
+      ? `<span class="pill">✅ 已服藥</span>`
+      : `<span class="pill">❌ 漏服</span>`;
+
+    return `
+      <div class="detail-item">
+        <div class="detail-left">
+          <div><b>${timeStr}</b>　${boxLabel(x.box)}</div>
+          <div class="muted">藥品：${medsStr}</div>
+        </div>
+        <div>${pill}</div>
+      </div>
+    `;
+  }).join("");
+}
+
 async function loadHistory(){
   const msg = document.getElementById("history-msg");
-  const body = document.getElementById("history-body");
   if (msg) msg.textContent = "載入中...";
 
   const r = await fetch(API_HISTORY, FETCH_GET_OPTS);
   const data = await r.json();
   if (!r.ok) throw new Error(data.detail || "GET /api/history failed");
 
-  const rows = (data.rows || []).filter(x => (x.state === "DONE" || x.state === "MISSED"));
+  historyRows = (data.rows || []).filter(x => (x.state === "DONE" || x.state === "MISSED"));
+  dayMap = buildDayMap(historyRows);
 
-  if (!rows.length) {
-    body.innerHTML = `<tr><td colspan="4" class="muted">（近 7 天沒有最終結果紀錄）</td></tr>`;
-    if (msg) msg.textContent = "✅ 已載入（0 筆）";
-    return;
-  }
+  if (msg) msg.textContent = `✅ 已載入（${historyRows.length} 筆，近 ${data.days ?? 30} 天）`;
 
-  body.innerHTML = rows.map(x => {
-    const timeStr = x.device_ts ? x.device_ts : fmtTs(x.recv_ts);
-    const medsStr = renderMeds(x.meds || []);
-    return `
-      <tr>
-        <td>${timeStr}</td>
-        <td>${boxLabel(x.box)}</td>
-        <td>${stateLabel(x.state)}</td>
-        <td>${medsStr}</td>
-      </tr>
-    `;
-  }).join("");
-
-  if (msg) msg.textContent = `✅ 已載入（${rows.length} 筆）`;
+  // keep cursor on current month by default
+  renderCalendar();
 }
 
 /* ========== Tabs ========== */
@@ -444,6 +684,7 @@ function setActiveTab(which) {
   }
 }
 
+/* ========== Events ========== */
 document.getElementById("tab-status").addEventListener("click", () => setActiveTab("status"));
 document.getElementById("tab-config").addEventListener("click", () => setActiveTab("config"));
 document.getElementById("tab-history").addEventListener("click", () => setActiveTab("history"));
@@ -460,10 +701,38 @@ document.getElementById("btn-save").addEventListener("click", () => {
   });
 });
 
+// calendar controls
 document.getElementById("btn-history").addEventListener("click", () => {
   loadHistory().catch(err => {
     document.getElementById("history-msg").textContent = `❌ 載入失敗：${err.message}`;
   });
+});
+
+document.getElementById("btn-prev-month").addEventListener("click", () => {
+  calCursor = new Date(calCursor.getFullYear(), calCursor.getMonth() - 1, 1);
+  selectedDateStr = null;
+  renderCalendar();
+});
+
+document.getElementById("btn-next-month").addEventListener("click", () => {
+  calCursor = new Date(calCursor.getFullYear(), calCursor.getMonth() + 1, 1);
+  selectedDateStr = null;
+  renderCalendar();
+});
+
+document.getElementById("btn-today").addEventListener("click", () => {
+  calCursor = new Date();
+  selectedDateStr = ymd(new Date());
+  renderCalendar();
+  renderDayDetails(selectedDateStr);
+});
+
+document.getElementById("month-picker").addEventListener("change", (e) => {
+  const v = e.target.value; // YYYY-MM
+  const [y, m] = v.split("-").map(Number);
+  calCursor = new Date(y, m - 1, 1);
+  selectedDateStr = null;
+  renderCalendar();
 });
 
 /* ========== init ========== */
